@@ -2,7 +2,7 @@ name: Build and deploy FixIt.API
 
 on:
   push:
-    branches: [ master ] 
+    branches: [ master ] # ou a branch que você usa
 
 jobs:
   build-and-deploy:
@@ -13,23 +13,23 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '8.0.x' 
+        dotnet-version: '8.0.x' # versão do .NET
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build
+    - name: Grant write permissions to /app
+      run: chmod 777 /app
     - name: Publish
-      run: dotnet publish FixIt.API/FixIt.API.csproj -c Release -o /home/runner/work/artifacts -p:PublishSingleFile=true
-    - name: Copy to /app
-      run: cp -r /home/runner/work/artifacts/* /app
-    - name: Deploy to Docker Hub 
+      run: dotnet publish FixIt.API/FixIt.API.csproj -c Release -o /app -p:PublishSingleFile=true
+    - name: Deploy to Docker Hub # ou outro serviço
       uses: docker/build-push-action@v3
       with:
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_PASSWORD }}
         context: .
         file: ./Dockerfile
         push: true
-        tags: ${{ secrets.DOCKER_HUB_USERNAME }}/fixit-api:latest     
+        tags: ${{ secrets.DOCKER_HUB_USERNAME }}/fixit-api:latest # substitua pelo seu usuário e nome da imagem
+
+
