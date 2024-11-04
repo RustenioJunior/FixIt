@@ -2,7 +2,7 @@ name: Build and deploy FixIt.API
 
 on:
   push:
-    branches: [ master ] # ou a branch que você usa
+    branches: [ master ]
 
 jobs:
   build-and-deploy:
@@ -20,14 +20,21 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build
-    - name: Publish as root
-      run: sudo dotnet publish FixIt.API/FixIt.API.csproj -c Release -o /app -p:PublishSingleFile=true
+    - name: Create /app directory
+      run: mkdir /app
+    - name: Publish
+      run: dotnet publish FixIt.API/FixIt.API.csproj -c Release -o /app
+    - name: Copy apphost
+      run: cp /home/runner/work/FixIt/FixIt/FixIt.API/obj/Release/net8.0/apphost /app
+    - name: Set permissions
+      run: chmod 777 /app /app/*
     - name: Deploy to Docker Hub # ou outro serviço
       uses: docker/build-push-action@v3
       with:
         context: .
         file: ./Dockerfile
         push: true
-        tags: ${{ secrets.DOCKER_HUB_USERNAME }}/fixit-api:latest # substitua pelo seu usuário e nome da imagem
-
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        tags: ${{ secrets.DOCKER_HUB_USERNAME }}/dotnet/sdk:8.0
 
