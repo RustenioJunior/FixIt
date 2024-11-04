@@ -21,7 +21,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build
     - name: Publish
-      run: dotnet publish -c Release -o out
+      run: dotnet publish FixIt.API/FixIt.API.csproj -c Release -o /app -p:PublishSingleFile=true
     - name: Deploy to Docker Hub 
       uses: docker/build-push-action@v3
       with:
