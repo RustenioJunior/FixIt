@@ -20,6 +20,8 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build
+    - name: Grant write permissions to /app
+      run: chmod 777 /app
     - name: Publish
       run: dotnet publish FixIt.API/FixIt.API.csproj -c Release -o /app -p:PublishSingleFile=true
     - name: Deploy to Docker Hub 
