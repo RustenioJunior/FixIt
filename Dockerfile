@@ -11,7 +11,7 @@ RUN apt-get update && \
 RUN dotnet restore
 COPY . .
 USER root
-RUN dotnet publish FixIt.API/FixIt.API.csproj -c Release -o /app/publish.json 
+RUN dotnet publish FixIt.API/FixIt.API.csproj -c Release -o /app/out/FixIt.API.dll
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
