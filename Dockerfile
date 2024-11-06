@@ -11,11 +11,11 @@ RUN apt-get update && \
 RUN dotnet restore
 COPY . .
 USER root
-RUN dotnet publish FixIt.API/FixIt.API.csproj -c Release -o /app/out/FixIt.API.dll
+RUN dotnet publish FixIt.API/FixIt.API.csproj -c Release -p:PublishSingleFile=true -o /app/out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app/ ./
-RUN chmod +x ./* 
+COPY --from=build /app/out ./
+RUN chmod +x ./FixIt.API.dll
 EXPOSE 80
 ENTRYPOINT ["dotnet", "FixIt.API.dll"]
