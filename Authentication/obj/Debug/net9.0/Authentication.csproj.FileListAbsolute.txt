@@ -26,7 +26,6 @@ D:\FixIt\Authentication\obj\Debug\net9.0\staticwebassets\msbuild.build.Authentic
 D:\FixIt\Authentication\obj\Debug\net9.0\staticwebassets\msbuild.buildMultiTargeting.Authentication.props
 D:\FixIt\Authentication\obj\Debug\net9.0\staticwebassets\msbuild.buildTransitive.Authentication.props
 D:\FixIt\Authentication\obj\Debug\net9.0\staticwebassets.pack.json
-D:\FixIt\Authentication\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 D:\FixIt\Authentication\obj\Debug\net9.0\Authenti.5C4D8D91.Up2Date
 D:\FixIt\Authentication\obj\Debug\net9.0\Authentication.dll
 D:\FixIt\Authentication\obj\Debug\net9.0\refint\Authentication.dll
