@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\FixIt\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{F1F42F25-A490-4DD8-957C-4D54DC149667}|ServiceManagement\\ServiceManagement.csproj|d:\\fixit\\servicemanagement\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1F42F25-A490-4DD8-957C-4D54DC149667}|ServiceManagement\\ServiceManagement.csproj|solutionrelative:servicemanagement\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F4A98712-BA7D-4F5A-BCFB-F94E55291C62}|fixit\\fixit.csproj|d:\\fixit\\fixit\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F4A98712-BA7D-4F5A-BCFB-F94E55291C62}|fixit\\fixit.csproj|solutionrelative:fixit\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\FixIt\\ServiceManagement\\Program.cs",
+              "RelativeDocumentMoniker": "ServiceManagement\\Program.cs",
+              "ToolTip": "D:\\FixIt\\ServiceManagement\\Program.cs",
+              "RelativeToolTip": "ServiceManagement\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-06T19:41:20.527Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\FixIt\\fixit\\Program.cs",
+              "RelativeDocumentMoniker": "fixit\\Program.cs",
+              "ToolTip": "D:\\FixIt\\fixit\\Program.cs",
+              "RelativeToolTip": "fixit\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-24T23:03:55.924Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
