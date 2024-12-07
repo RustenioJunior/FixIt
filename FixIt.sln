@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceManagement", "Servic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagement", "UserManagement\UserManagement.csproj", "{2B44DA6F-3B92-40F9-9FE2-0F79308E6506}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketManagement", "TicketManagement\TicketManagement.csproj", "{AB1C1213-C339-48E5-ACA1-A8E0E9D59E89}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RegisterManagement", "RegisterManagement\RegisterManagement.csproj", "{78566B01-FD61-49F1-A220-B38709518310}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{2B44DA6F-3B92-40F9-9FE2-0F79308E6506}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B44DA6F-3B92-40F9-9FE2-0F79308E6506}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B44DA6F-3B92-40F9-9FE2-0F79308E6506}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AB1C1213-C339-48E5-ACA1-A8E0E9D59E89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AB1C1213-C339-48E5-ACA1-A8E0E9D59E89}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AB1C1213-C339-48E5-ACA1-A8E0E9D59E89}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AB1C1213-C339-48E5-ACA1-A8E0E9D59E89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78566B01-FD61-49F1-A220-B38709518310}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78566B01-FD61-49F1-A220-B38709518310}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78566B01-FD61-49F1-A220-B38709518310}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78566B01-FD61-49F1-A220-B38709518310}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -26,8 +26,12 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -44,19 +48,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "ServiceManagement",
+              "Title": "ServiceManagement.csproj",
               "DocumentMoniker": "D:\\FixIt\\ServiceManagement\\ServiceManagement.csproj",
               "RelativeDocumentMoniker": "ServiceManagement\\ServiceManagement.csproj",
               "ToolTip": "D:\\FixIt\\ServiceManagement\\ServiceManagement.csproj",
               "RelativeToolTip": "ServiceManagement\\ServiceManagement.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2024-12-06T21:54:53.224Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+              "WhenOpened": "2024-12-06T21:54:53.224Z"
             },
             {
               "$type": "Document",
@@ -68,8 +67,7 @@
               "RelativeToolTip": "ServiceManagement\\ServiceManagement.http",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
-              "WhenOpened": "2024-12-06T21:51:41.499Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-12-06T21:51:41.499Z"
             },
             {
               "$type": "Document",
@@ -81,8 +79,7 @@
               "RelativeToolTip": "Authentication\\Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAzAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-12-06T20:42:35.569Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-12-06T20:42:35.569Z"
             }
           ]
         }
