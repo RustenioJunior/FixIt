@@ -26,10 +26,12 @@ D:\FixIt\ServiceManagement\obj\Debug\net9.0\staticwebassets\msbuild.build.Servic
 D:\FixIt\ServiceManagement\obj\Debug\net9.0\staticwebassets\msbuild.buildMultiTargeting.ServiceManagement.props
 D:\FixIt\ServiceManagement\obj\Debug\net9.0\staticwebassets\msbuild.buildTransitive.ServiceManagement.props
 D:\FixIt\ServiceManagement\obj\Debug\net9.0\staticwebassets.pack.json
-D:\FixIt\ServiceManagement\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 D:\FixIt\ServiceManagement\obj\Debug\net9.0\ServiceM.33B559E0.Up2Date
 D:\FixIt\ServiceManagement\obj\Debug\net9.0\ServiceManagement.dll
 D:\FixIt\ServiceManagement\obj\Debug\net9.0\refint\ServiceManagement.dll
 D:\FixIt\ServiceManagement\obj\Debug\net9.0\ServiceManagement.pdb
 D:\FixIt\ServiceManagement\obj\Debug\net9.0\ServiceManagement.genruntimeconfig.cache
 D:\FixIt\ServiceManagement\obj\Debug\net9.0\ref\ServiceManagement.dll
+D:\FixIt\ServiceManagement\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
+D:\FixIt\ServiceManagement\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\FixIt\ServiceManagement\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll

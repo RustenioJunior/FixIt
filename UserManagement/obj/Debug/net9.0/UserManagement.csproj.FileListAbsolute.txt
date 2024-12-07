@@ -26,10 +26,12 @@ D:\FixIt\UserManagement\obj\Debug\net9.0\staticwebassets\msbuild.build.UserManag
 D:\FixIt\UserManagement\obj\Debug\net9.0\staticwebassets\msbuild.buildMultiTargeting.UserManagement.props
 D:\FixIt\UserManagement\obj\Debug\net9.0\staticwebassets\msbuild.buildTransitive.UserManagement.props
 D:\FixIt\UserManagement\obj\Debug\net9.0\staticwebassets.pack.json
-D:\FixIt\UserManagement\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 D:\FixIt\UserManagement\obj\Debug\net9.0\UserMana.582A6DE7.Up2Date
 D:\FixIt\UserManagement\obj\Debug\net9.0\UserManagement.dll
 D:\FixIt\UserManagement\obj\Debug\net9.0\refint\UserManagement.dll
 D:\FixIt\UserManagement\obj\Debug\net9.0\UserManagement.pdb
 D:\FixIt\UserManagement\obj\Debug\net9.0\UserManagement.genruntimeconfig.cache
 D:\FixIt\UserManagement\obj\Debug\net9.0\ref\UserManagement.dll
+D:\FixIt\UserManagement\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
+D:\FixIt\UserManagement\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\FixIt\UserManagement\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
