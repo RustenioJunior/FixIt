@@ -1,9 +1,17 @@
 {
   "version": 2,
+<<<<<<< HEAD
+  "dgSpecHash": "XdL8PyhZgHU=",
+=======
   "dgSpecHash": "wu7UbWFw338=",
+>>>>>>> 543153a398194512440a6ef947499a4ba85bed59
   "success": true,
-  "projectFilePath": "D:\\FixIt\\Authentication\\Authentication.csproj",
+  "projectFilePath": "C:\\Users\\adelt\\Desktop\\FixIt\\Authentication\\Authentication.csproj",
   "expectedPackageFiles": [
+<<<<<<< HEAD
+    "C:\\Users\\adelt\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.0\\microsoft.aspnetcore.openapi.9.0.0.nupkg.sha512",
+    "C:\\Users\\adelt\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+=======
     "C:\\Users\\ruste\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\ruste\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\9.0.0\\microsoft.aspnetcore.authentication.jwtbearer.9.0.0.nupkg.sha512",
     "C:\\Users\\ruste\\.nuget\\packages\\microsoft.aspnetcore.mvc.testing\\9.0.0\\microsoft.aspnetcore.mvc.testing.9.0.0.nupkg.sha512",

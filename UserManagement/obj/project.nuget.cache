@@ -1,10 +1,17 @@
 {
   "version": 2,
-  "dgSpecHash": "kRcpKbIf5uw=",
+<<<<<<< HEAD
+  "dgSpecHash": "RY7rl3wOlnU=",
+=======
+  "dgSpecHash": "YmTkEHdi2DQ=",
+>>>>>>> 543153a398194512440a6ef947499a4ba85bed59
   "success": true,
-  "projectFilePath": "D:\\FixIt\\UserManagement\\UserManagement.csproj",
+  "projectFilePath": "C:\\Users\\adelt\\Desktop\\FixIt\\UserManagement\\UserManagement.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\ruste\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
+<<<<<<< HEAD
+    "C:\\Users\\adelt\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.0\\microsoft.aspnetcore.openapi.9.0.0.nupkg.sha512",
+    "C:\\Users\\adelt\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+=======
     "C:\\Users\\ruste\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\ruste\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.0\\microsoft.aspnetcore.openapi.9.0.0.nupkg.sha512",
     "C:\\Users\\ruste\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\7.0.0\\microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512",
@@ -60,8 +67,8 @@
     "C:\\Users\\ruste\\.nuget\\packages\\system.security.accesscontrol\\5.0.0\\system.security.accesscontrol.5.0.0.nupkg.sha512",
     "C:\\Users\\ruste\\.nuget\\packages\\system.security.principal.windows\\5.0.0\\system.security.principal.windows.5.0.0.nupkg.sha512",
     "C:\\Users\\ruste\\.nuget\\packages\\system.text.json\\9.0.0\\system.text.json.9.0.0.nupkg.sha512",
-    "C:\\Users\\ruste\\.nuget\\packages\\system.threading.channels\\7.0.0\\system.threading.channels.7.0.0.nupkg.sha512",
-    "C:\\Users\\ruste\\.nuget\\packages\\zstdsharp.port\\0.7.3\\zstdsharp.port.0.7.3.nupkg.sha512"
+    "C:\\Users\\ruste\\.nuget\\packages\\system.threading.channels\\7.0.0\\system.threading.channels.7.0.0.nupkg.sha512"
+>>>>>>> 543153a398194512440a6ef947499a4ba85bed59
   ],
   "logs": []
 }

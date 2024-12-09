@@ -1,3 +1,27 @@
+<<<<<<< HEAD
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+
+WORKDIR /app
+
+# Copy csproj and restore as distinct layers
+COPY *.csproj ./
+
+RUN dotnet restore
+
+# Copy everything else and build
+COPY . ./
+
+RUN dotnet publish -c Release -o out
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+
+WORKDIR /app
+
+COPY --from=build /app/out ./
+
+EXPOSE 80
+
+=======
 # See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
@@ -27,4 +51,5 @@ RUN dotnet publish "./ServiceManagement.csproj" -c $BUILD_CONFIGURATION -o /app/
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+>>>>>>> 543153a398194512440a6ef947499a4ba85bed59
 ENTRYPOINT ["dotnet", "ServiceManagement.dll"]
