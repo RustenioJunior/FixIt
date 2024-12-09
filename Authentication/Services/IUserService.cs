@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using WebApi.Models;
+using Authentication.Models;
 
-namespace WebApi.Services
+namespace Authentication.Services
 {
     public interface IUserService
     {

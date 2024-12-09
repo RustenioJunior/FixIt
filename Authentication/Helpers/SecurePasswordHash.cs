@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace WebApi.Helpers
+namespace Authentication.Helpers
 {
     // https://codinginfinite.com/c-sharp-hashing-algorithm-class-asp-net-core/
     public sealed class SecurePasswordHash

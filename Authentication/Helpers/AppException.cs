@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace WebApi.Helpers
+namespace Authentication.Helpers
 {
     public class AppException : Exception
     {

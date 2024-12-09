@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   mongo:
     container_name: mongo
@@ -21,3 +23,8 @@ services:
       ConnectionString: mongodb://root:example@mongo:27017
     depends_on:
       - mongo
+    volumes:
+      - dataprotection:/root/.aspnet/DataProtection-Keys
+
+volumes:
+  dataprotection:

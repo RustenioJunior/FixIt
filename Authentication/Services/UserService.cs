@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -7,22 +5,21 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
-using WebApi.Helpers;
-using WebApi.Models;
+using Authentication.Helpers;
+using Authentication.Models;
 
-
-namespace WebApi.Services
+namespace Authentication.Services
 {
     public class UserService : IUserService
     {
-        private readonly MongoDB.Driver.IMongoCollection<User> _users;
+        private readonly IMongoCollection<User> _users;
         private readonly AppSettings _appSettings;
 
         public UserService(IOptions<AppSettings> appSettings)
         {
-            _appSettings = appSettings.Value;
-            var client = new MongoClient(_appSettings.ConnectionString);
-            var database = client.GetDatabase(_appSettings.Database);
+             var settings = appSettings.Value;
+             var client = new MongoClient(settings.ConnectionString);
+             var database = client.GetDatabase(settings.Database);
             _users = database.GetCollection<User>("Users");
         }
 

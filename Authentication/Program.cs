@@ -1,27 +1,21 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using WebApi.Helpers;
-using WebApi.Services;
+using Authentication.Helpers;
+using Authentication.Services;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddCors();
-builder.Services.AddControllers(); // Adicione controllers
+builder.Services.AddControllers();
 
 // Configure strongly typed settings objects
 var appSettingsSection = builder.Configuration.GetSection("AppSettings");
 builder.Services.Configure<AppSettings>(appSettingsSection);
 
-builder.Services.Configure<AppSettings>(options =>
-{
-    options.Secret = builder.Configuration.GetSection("AppSettings:Secret").Value;
-    options.ConnectionString = builder.Configuration["ConnectionString"];
-    options.Database = builder.Configuration.GetSection("MongoDB:Database").Value;
-});
-
-// Configure JWT authentication
 var appSettings = appSettingsSection.Get<AppSettings>();
 var key = Encoding.ASCII.GetBytes(appSettings.Secret);
 
@@ -30,11 +24,11 @@ builder.Services.AddAuthentication(x =>
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(jwtOptions =>
+.AddJwtBearer(x =>
 {
-    jwtOptions.RequireHttpsMetadata = false;
-    jwtOptions.SaveToken = true;
-    jwtOptions.TokenValidationParameters = new TokenValidationParameters
+    x.RequireHttpsMetadata = false;
+    x.SaveToken = true;
+    x.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
@@ -58,8 +52,13 @@ else
     app.UseHsts();
 }
 
+app.UseHttpsRedirection();
+app.UseCors(x => x
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader());
+
 app.UseAuthentication();
-app.UseRouting();
 app.UseAuthorization();
 
 app.MapControllers();

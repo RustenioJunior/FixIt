@@ -2,10 +2,9 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using WebApi.Helpers;
-using WebApi.Models;
-using WebApi.Services;
+using Authentication.Helpers;
+using Authentication.Models;
+using Authentication.Services;
 
 namespace WebApi.Controllers
 {
