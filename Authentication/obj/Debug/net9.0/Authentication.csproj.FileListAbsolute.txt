@@ -355,9 +355,6 @@ D:\FixIt\Authentication\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
 D:\FixIt\Authentication\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 D:\FixIt\Authentication\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
 D:\FixIt\Authentication\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll
-D:\FixIt\Authentication\bin\Debug\net9.0\xunit.abstractions.dll
-D:\FixIt\Authentication\bin\Debug\net9.0\xunit.assert.dll
-D:\FixIt\Authentication\bin\Debug\net9.0\xunit.core.dll
-D:\FixIt\Authentication\bin\Debug\net9.0\xunit.execution.dotnet.dll
 D:\FixIt\Authentication\bin\Debug\net9.0\ZstdSharp.dll
 D:\FixIt\Authentication\obj\Debug\net9.0\MvcTestingAppManifest.json
+D:\FixIt\Authentication\bin\Debug\net9.0\BCrypt.Net-Next.dll
