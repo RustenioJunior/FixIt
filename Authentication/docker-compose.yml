@@ -1,0 +1,29 @@
+
+services:
+  mongo:
+    container_name: mongo
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - ./data:/data/db
+    ports:
+      - 27017:27017
+
+  webapi:
+    container_name: webapi
+    build:
+      context: .
+    ports:
+      - "5235:80"
+    environment:
+      ConnectionString: mongodb://root:example@mongo:27017
+    depends_on:
+      - mongo
+    volumes:
+      - dataprotection:/root/.aspnet/DataProtection-Keys
+
+volumes:
+  dataprotection:

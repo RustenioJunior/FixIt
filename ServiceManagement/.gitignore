@@ -1,2 +1,20 @@
 /bin
 /obj
+# Ignore user-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+# Ignore directories for tool-specific files
+.vscode/
+.ionide/
+.fusebox/
+.nuget/
+packages/
+# Ignore user-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
