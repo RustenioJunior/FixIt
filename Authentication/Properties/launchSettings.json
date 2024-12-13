@@ -22,7 +22,7 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "CONTAINER_ENVIRONMENT": "MONGODB",
+        "CONTAINER_ENVIRONMENT": "mongodb",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "https://localhost:44308;http://localhost:5235"

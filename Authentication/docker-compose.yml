@@ -1,6 +1,7 @@
 
 services:
   mongodb:
+    container_name: mongodb
     image: mongo
     restart: always
     environment:
@@ -14,6 +15,7 @@ services:
       - authentication-mongo
 
   webapi:
+    container_name: webapi
     build:
       context: .
     ports:
@@ -21,7 +23,7 @@ services:
     networks:
       - authentication-mongo
     environment:
-      ConnectionString: mongodb://root:example@authentication-mongodb:27017
+      ConnectionString: mongodb://root:example@authentication-mongo:27017
     depends_on:
       - mongodb
     volumes:

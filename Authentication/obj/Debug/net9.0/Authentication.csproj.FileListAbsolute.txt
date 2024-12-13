@@ -358,4 +358,3 @@ D:\FixIt\Authentication\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll
 D:\FixIt\Authentication\bin\Debug\net9.0\ZstdSharp.dll
 D:\FixIt\Authentication\obj\Debug\net9.0\MvcTestingAppManifest.json
 D:\FixIt\Authentication\bin\Debug\net9.0\BCrypt.Net-Next.dll
-D:\FixIt\Authentication\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
