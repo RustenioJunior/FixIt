@@ -1,7 +1,6 @@
 
 services:
-  mongo:
-    container_name: mongo
+  mongodb:
     image: mongo
     restart: always
     environment:
@@ -11,19 +10,26 @@ services:
       - ./data:/data/db
     ports:
       - 27017:27017
+    networks:
+      - authentication-mongo
 
   webapi:
-    container_name: webapi
     build:
       context: .
     ports:
       - "5235:80"
+    networks:
+      - authentication-mongo
     environment:
-      ConnectionString: mongodb://root:example@mongo:27017
+      ConnectionString: mongodb://root:example@authentication-mongodb:27017
     depends_on:
-      - mongo
+      - mongodb
     volumes:
       - dataprotection:/root/.aspnet/DataProtection-Keys
 
 volumes:
   dataprotection:
+
+networks:
+  authentication-mongo:
+    driver: bridge
