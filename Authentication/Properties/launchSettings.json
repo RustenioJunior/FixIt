@@ -20,12 +20,12 @@
     "WebApi": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/values",
+      "launchUrl": "swagger",
       "environmentVariables": {
-        "CONTAINER_ENVIRONMENT": "mongdb",
+        "CONTAINER_ENVIRONMENT": "mongodb",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:7260;http://localhost:5235"
+      "applicationUrl": "https://localhost:44308;http://localhost:5235"
     }
   }
 }
