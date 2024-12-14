@@ -21,11 +21,29 @@ jobs:
         with:
           dotnet-version: '9.x'
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      - name: Build Authentication
+        run: dotnet build Authentication/Authentication.csproj --configuration Release
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      - name: Publish Authentication
+        run: dotnet publish Authentication/Authentication.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp/authentication"
+
+      - name: Build UserManagement
+        run: dotnet build UserManagement/UserManagement.csproj --configuration Release
+
+      - name: Publish UserManagement
+        run: dotnet publish UserManagement/UserManagement.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp/usermanagement"
+
+      - name: Build RegisterManagement
+        run: dotnet build RegisterManagement/RegisterManagement.csproj --configuration Release
+
+      - name: Publish RegisterManagement
+        run: dotnet publish RegisterManagement/RegisterManagement.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp/registermanagement"
+
+      - name: Build ServiceManagement
+        run: dotnet build ServiceManagement/ServiceManagement.csproj --configuration Release
+
+      - name: Publish ServiceManagement
+        run: dotnet publish ServiceManagement/ServiceManagement.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp/servicemanagement"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -35,31 +53,20 @@ jobs:
 
   deploy:
     runs-on: windows-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write #This is required for requesting the JWT
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_3422DDDABFCE46E1A6997F6F3B15B337 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_389BF6E5B4E64BA6860AA43FF496A24A }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7C89076EF81142E19B86BF50838F5A57 }}
+          path: ${{env.DOTNET_ROOT}}/myapp
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@v2
         with:
-          app-name: 'fixit'
-          slot-name: 'Production'
-          package: .
-          
+          app-name: 'your-app-name'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ${{env.DOTNET_ROOT}}/myapp
