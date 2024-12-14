@@ -7,15 +7,14 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
-using WebApi.Helpers;
-using WebApi.Models;
+using UserManagement.Helpers;
+using UserManagement.Models;
 
-
-namespace WebApi.Services
+namespace UserManagement.Services
 {
     public class UserService : IUserService
     {
-        private readonly MongoDB.Driver.IMongoCollection<User> _users;
+        private readonly IMongoCollection<User> _users;
         private readonly AppSettings _appSettings;
 
         public UserService(IOptions<AppSettings> appSettings)
@@ -26,39 +25,27 @@ namespace WebApi.Services
             _users = database.GetCollection<User>("Users");
         }
 
-        public async Task<User> Authenticate(string username, string password)
+        public async Task<User?> Authenticate(string username, string password)
         {
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                 return null;
 
-            var user = await _users.Find(x => x.Username == username)
-               .FirstOrDefaultAsync();
+            var user = await _users.Find(x => x.Username == username).FirstOrDefaultAsync();
 
-            // return null if user not found
-            if (user == null)
+            if (user == null || !SecurePasswordHash.Verify(password, user.Password))
                 return null;
 
-            // check if password is correct
-            if (!SecurePasswordHash.Verify(password, user.Password))
-                return null;
-
-            // authentication successful so generate jwt token
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, user.Id)
-                }),
+                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, user.Id.ToString()) }),
                 Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             user.Token = tokenHandler.WriteToken(token);
+
             user.Password = null;
 
             return user;
@@ -66,25 +53,22 @@ namespace WebApi.Services
 
         public async Task<IEnumerable<User>> GetUsers()
         {
-            // return users without passwords
-            return await _users.Find(x => x.Password != null).ToListAsync();
+            return await _users.Find(x => true).ToListAsync();
         }
 
         public async Task<User> Create(User user, string password)
         {
-            // validation
             if (string.IsNullOrWhiteSpace(password))
                 throw new AppException("Password is required");
 
             if (_users.Find(x => x.Username == user.Username).Any())
                 throw new AppException("Username \"" + user.Username + "\" is already taken");
 
-            string passwordHash = SecurePasswordHash.Hash(password);
-            user.Password = passwordHash;
+            user.Password = SecurePasswordHash.Hash(password);
 
             await _users.InsertOneAsync(user);
+
             return user;
         }
-
     }
 }

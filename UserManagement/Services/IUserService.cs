@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using WebApi.Models;
+using UserManagement.Models;
 
-namespace WebApi.Services
+namespace UserManagement.Services
 {
     public interface IUserService
     {

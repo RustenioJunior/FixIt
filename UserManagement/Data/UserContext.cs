@@ -1,4 +1,4 @@
-using Models;
+using UserManagement.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Data
