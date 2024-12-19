@@ -1,0 +1,23 @@
+
+services:
+  authentication-service:
+    build:
+      context: .
+      dockerfile: Authentication/Dockerfile
+    ports:
+      - "5235:80"
+    container_name: authentication-service-container
+  usermanagement-service:
+    build:
+      context: .
+      dockerfile: UserManagement/Dockerfile
+    ports:
+      - "5279:80"
+    container_name: usermanagement-service-container
+  mongodb:
+    image: mongo
+    restart: always
+    volumes:
+      - ./data:/data/db
+    ports:
+      - 27017:27017

@@ -1,57 +1,100 @@
-using Microsoft.AspNetCore.Mvc;
 using UserManagement.Models;
+using UserManagement.Repositories;
 using UserManagement.Services;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
-namespace UserManagement.Controllers
+namespace Authentication.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController : ControllerBase
+    public class UsuarioController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly AuthService _authService;
 
-        public UserController(IUserService userService)
+        public UsuarioController(IUsuarioRepository usuarioRepository, AuthService authService)
         {
-            _userService = userService;
-        }
-
-        [HttpPost("authenticate")]
-        public async Task<IActionResult> Authenticate([FromBody] AuthenticateModel model)
-        {
-            var user = await _userService.Authenticate(model.Username, model.Password);
-
-            if (user == null)
-                return BadRequest(new { message = "Username or password is incorrect" });
-
-            return Ok(user);
-        }
-
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel model)
-        {
-            var user = new User
-            {
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                Username = model.Username
-            };
-
-            try
-            {
-                await _userService.Create(user, model.Password);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            _usuarioRepository = usuarioRepository;
+            _authService = authService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<List<Usuario>>> GetUsuarios()
         {
-            var users = await _userService.GetUsers();
-            return Ok(users);
+            var usuarios = await _usuarioRepository.GetUsuariosAsync();
+            return Ok(usuarios);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Usuario>> GetUsuario(Guid id)
+        {
+            var usuario = await _usuarioRepository.GetUsuarioByIdAsync(id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+            return Ok(usuario);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Usuario>> CreateUsuario(Usuario usuario)
+        {
+            // Validações dos dados do usuário
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Hash da senha
+            usuario.Password = _authService.HashSenha(usuario.Password);
+
+            await _usuarioRepository.CreateUsuarioAsync(usuario);
+            return CreatedAtAction(nameof(GetUsuario), new { id = usuario.Id }, usuario);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUsuario(Guid id, Usuario usuario)
+        {
+            if (id != usuario.Id)
+            {
+                return BadRequest();
+            }
+
+            // Validações dos dados do usuário
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _usuarioRepository.UpdateUsuarioAsync(usuario);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUsuario(Guid id)
+        {
+            var usuario = await _usuarioRepository.GetUsuarioByIdAsync(id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+
+            await _usuarioRepository.DeleteUsuarioAsync(id);
+            return NoContent();
+        }
+
+        [HttpPost("auth")]
+        public async Task<ActionResult<string>> Autenticar(LoginDto loginDto)
+        {
+            var usuario = await _usuarioRepository.GetUsuarioByUsernameAsync(loginDto.Username);
+            if (usuario == null || !_authService.VerificarSenha(loginDto.Password, usuario.Password))
+            {
+                return Unauthorized();
+            }
+
+            var token = _authService.GerarTokenJWT(usuario);
+            return Ok(token);
         }
     }
 }

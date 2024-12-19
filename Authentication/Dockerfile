@@ -1,21 +1,19 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
-
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
-EXPOSE 44308
-EXPOSE 5235
+EXPOSE 80
 
-# Copy csproj and restore as distinct layers
-COPY *.csproj ./
-RUN dotnet restore
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY ["Authentication/Authentication.csproj", "Authentication/"]
+RUN dotnet restore "Authentication/Authentication.csproj"
+COPY . .
+WORKDIR "/src/Authentication"
+RUN dotnet build "Authentication.csproj" -c Release -o /app/build
 
-# Copy everything else and build
-COPY . ./
-RUN dotnet publish -c Release -o out
+FROM build AS publish
+RUN dotnet publish "Authentication.csproj" -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
-
+FROM base AS final
 WORKDIR /app
-
-COPY --from=build /app/out ./
-
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Authentication.dll"]

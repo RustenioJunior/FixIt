@@ -1,11 +1,13 @@
-using Microsoft.Extensions.Options;
-using UserManagement;
-using MongoDB.Driver;
+using UserManagement.Models;
+using UserManagement.Repositories;
 using UserManagement.Services;
-using UserManagement.Helpers;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,37 +16,37 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure strongly typed settings objects
-var appSettingsSection = builder.Configuration.GetSection("AppSettings");
-builder.Services.Configure<AppSettings>(appSettingsSection);
+// Configure MongoDB settings and GuidRepresentation
+builder.Services.Configure<MongoDbSettings>(
+    builder.Configuration.GetSection("MongoDbSettings"));
 
-var appSettings = appSettingsSection.Get<AppSettings>();
-if (appSettings == null || string.IsNullOrEmpty(appSettings.Secret))
+// Configure GuidRepresentation globally to Standard
+BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard)); // Use Standard for consistent Guid representation
+
+// Use Standard Guid Representation
+var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
+if (mongoDbSettings == null)
 {
-    throw new Exception("AppSettings or Secret is not configured properly.");
+    throw new InvalidOperationException("MongoDbSettings section is missing in the configuration.");
 }
-var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+var clientSettings = MongoClientSettings.FromConnectionString(mongoDbSettings.ConnectionString);
 
-builder.Services.AddAuthentication(x =>
+builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(clientSettings));
+
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<AuthService>();
+
+// Configure CORS
+builder.Services.AddCors(options =>
 {
-    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(x =>
-{
-    x.RequireHttpsMetadata = false;
-    x.SaveToken = true;
-    x.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false
-    };
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
 });
-
-// Configure DI for application services
-builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
@@ -59,11 +61,14 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// Comment out or remove this line to disable HTTPS redirection
+// app.UseHttpsRedirection();
 
-app.UseAuthentication();
+// Use CORS
+app.UseCors("AllowAll");
+
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+app.Run("http://0.0.0.0:80");
