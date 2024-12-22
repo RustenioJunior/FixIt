@@ -43,7 +43,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// Comment out or remove this line to disable HTTPS redirection
+// app.UseHttpsRedirection();
 
 // Use CORS
 app.UseCors("AllowAll");
@@ -52,4 +53,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+app.Run("http://0.0.0.0:80");

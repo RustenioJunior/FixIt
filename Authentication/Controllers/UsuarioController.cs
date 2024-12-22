@@ -2,6 +2,7 @@
 using Authentication.Repositories;
 using Authentication.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Authentication.Controllers
 {
