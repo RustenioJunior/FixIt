@@ -2,7 +2,7 @@ using UserManagement.Models;
 
 namespace UserManagement.Repositories
 {
-    public interface IUsuarioRepository
+    public interface IUserRepository
     {
         Task<List<Usuario>> GetUsuariosAsync();
         Task<Usuario> GetUsuarioByIdAsync(Guid id);

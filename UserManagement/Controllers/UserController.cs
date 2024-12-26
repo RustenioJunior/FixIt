@@ -4,32 +4,30 @@ using UserManagement.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-namespace Authentication.Controllers
+namespace UserManagement.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsuarioController : ControllerBase
+    public class UsersController : ControllerBase
     {
-        private readonly IUsuarioRepository _usuarioRepository;
-        private readonly AuthService _authService;
+        private readonly IUserRepository _userRepository;
 
-        public UsuarioController(IUsuarioRepository usuarioRepository, AuthService authService)
+        public UsersController(IUserRepository userRepository)
         {
-            _usuarioRepository = usuarioRepository;
-            _authService = authService;
+            _userRepository = userRepository;
         }
 
         [HttpGet]
         public async Task<ActionResult<List<Usuario>>> GetUsuarios()
         {
-            var usuarios = await _usuarioRepository.GetUsuariosAsync();
+            var usuarios = await _userRepository.GetUsuariosAsync();
             return Ok(usuarios);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Usuario>> GetUsuario(Guid id)
         {
-            var usuario = await _usuarioRepository.GetUsuarioByIdAsync(id);
+            var usuario = await _userRepository.GetUsuarioByIdAsync(id);
             if (usuario == null)
             {
                 return NotFound();
@@ -49,7 +47,7 @@ namespace Authentication.Controllers
             // Hash da senha
             usuario.Password = _authService.HashSenha(usuario.Password);
 
-            await _usuarioRepository.CreateUsuarioAsync(usuario);
+            await _userRepository.CreateUsuarioAsync(usuario);
             return CreatedAtAction(nameof(GetUsuario), new { id = usuario.Id }, usuario);
         }
 
@@ -67,34 +65,22 @@ namespace Authentication.Controllers
                 return BadRequest(ModelState);
             }
 
-            await _usuarioRepository.UpdateUsuarioAsync(usuario);
+            await _userRepository.UpdateUsuarioAsync(usuario);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(Guid id)
         {
-            var usuario = await _usuarioRepository.GetUsuarioByIdAsync(id);
+            var usuario = await _userRepository.GetUsuarioByIdAsync(id);
             if (usuario == null)
             {
                 return NotFound();
             }
 
-            await _usuarioRepository.DeleteUsuarioAsync(id);
+            await _userRepository.DeleteUsuarioAsync(id);
             return NoContent();
         }
 
-        [HttpPost("auth")]
-        public async Task<ActionResult<string>> Autenticar(LoginDto loginDto)
-        {
-            var usuario = await _usuarioRepository.GetUsuarioByUsernameAsync(loginDto.Username);
-            if (usuario == null || !_authService.VerificarSenha(loginDto.Password, usuario.Password))
-            {
-                return Unauthorized();
-            }
-
-            var token = _authService.GerarTokenJWT(usuario);
-            return Ok(token);
-        }
     }
 }
