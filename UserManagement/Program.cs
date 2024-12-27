@@ -33,7 +33,7 @@ var clientSettings = MongoClientSettings.FromConnectionString(mongoDbSettings.Co
 
 builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(clientSettings));
 
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<AuthService>();
 
 // Configure CORS
