@@ -1,0 +1,665 @@
+Resultado do teste de inserção:
+PostgresSQL-> 19 mn -> 1142.77 segundos
+MongoDB -> 12 mn -> 752.12 segundos
+Neo4J -> 1 hora, 4 minutos e 50.15 segundos -> 3850.15 segundos
+
+
+1--- Execução de uma pesquisa nas tabelas do cliente (client), marcação (appointment) e serviço (servisse), filtrando o resultado apenas para um cliente e agrupando os registos. Obtendo assim, o número total de serviços para um cliente;
+
+Duração PostgresSQL -> 0.780s na primeira consulta e cai nas próximas consultas seguintes por exemplo a segunda cai para 0.354s
+
+
+Query neo4J 
+
+MATCH (c:Client)
+WITH c
+MATCH (a:Appointment {client_id: c.id})
+WITH c, a
+MATCH (s:Service {appointment_id: a.id})
+RETURN 
+    c.id AS client_id, 
+    c.name AS client_name, 
+    COUNT(s) AS total_services
+ORDER BY total_services DESC;
+
+MATCH (c:Client), (a:Appointment)
+WHERE c.id = a.client_id
+MERGE (c)-[:HAS_APPOINTMENT]->(a);
+
+MATCH (a:Appointment), (s:Service)
+WHERE a.id = s.appointment_id
+MERGE (a)-[:HAS_SERVICE]->(s);
+
+
+MATCH (c:Client)-[:HAS_APPOINTMENT]->(a:Appointment)-[:HAS_SERVICE]->(s:Service)
+WITH c, COUNT(s) AS total_services
+RETURN 
+    c.id AS client_id, 
+    c.name AS client_name, 
+    total_services
+ORDER BY total_services DESC;
+
+
+Duração Neo4j -> 665 ms
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2--- Agregar as tabelas marcação (appointement) e serviço (service) join cliente por nome;
+Posgres query:
+
+SELECT 
+    a.id AS appointment_id,
+    a.date_appointment AS date_to_start_service,
+    a.date_conclusion AS date_to_finish_service,
+    s.date_begin AS date_that_service_start,
+    s.date_conclusion AS date_that_service_finish,
+    c.name
+FROM 
+    appointment a
+JOIN 
+    service s ON a.id = s.id
+join 
+    client c on a.id = c.id;
+
+Tempo -> 0.060s
+
+Cenário de Registros Desalinhados para todos os Appointment e todos os Service (mesmo sem correspondência)
+
+
+SELECT 
+    a.id AS appointment_id,
+    a.date_appointment AS date_to_start_service,
+    a.date_conclusion AS date_to_finish_service,
+    s.date_begin AS date_that_service_start,
+    s.date_conclusion AS date_that_service_finish,
+    c.name AS client_name
+FROM 
+    appointment a
+Left JOIN 
+    service s ON a.id = s.appointment_id
+Left JOIN 
+    client c ON c.id = a.client_id;
+
+tempo -> 0.980s
+------------------------------------------------------------------------------------------------------------------------------------------
+Neo4j:
+    MATCH 
+    (a:Appointment)-[:HAS_SERVICE]->(s:Service),
+    (a)-[:HAS_CLIENT]->(c:Client)
+RETURN 
+    a.id AS appointment_id,
+    a.date_appointment AS date_to_start_service,
+    a.date_conclusion AS date_to_finish_service,
+    s.date_begin AS date_that_service_start,
+    s.date_conclusion AS date_that_service_finish,
+    c.name AS client_name;
+
+tempo -> 1783 ms
+
+Cenário de Registros Desalinhados para todos os Appointment e todos os Service (mesmo sem correspondência)
+MATCH 
+    (a:Appointment)
+OPTIONAL MATCH 
+    (a)-[:HAS_SERVICE]->(s:Service)
+OPTIONAL MATCH 
+    (a)-[:HAS_CLIENT]->(c:Client)
+RETURN 
+    a.id AS appointment_id,
+    a.date_appointment AS date_to_start_service,
+    a.date_conclusion AS date_to_finish_service,
+    s.date_begin AS date_that_service_start,
+    s.date_conclusion AS date_that_service_finish,
+    c.name AS client_name;
+
+tempo -> 2817 ms
+------------------------------------------------------------------------------------------------------------------------------------------MongoDb:
+
+Cenário de Registros Desalinhados para todos os Appointment e todos os Service (mesmo sem correspondência)
+
+
+[
+{
+    $lookup: {
+      from: "service", // Coleção de serviços
+      localField: "_id", // Campo em 'appointment'
+      foreignField: "appointment_id", // Campo correspondente em 'service'
+      as: "service_data" // Nome do campo de saída
+    }
+  },
+  {
+    $lookup: {
+      from: "client", // Coleção de clientes
+      localField: "client_id", // Campo em 'appointment'
+      foreignField: "_id", // Campo correspondente em 'client'
+      as: "client_data" // Nome do campo de saída
+    }
+  },
+  {
+    $unwind: {
+      path: "$service_data",
+      preserveNullAndEmptyArrays: true // Inclui registros de 'appointment' sem 'service'
+    }
+  },
+  {
+    $unwind: {
+      path: "$client_data",
+      preserveNullAndEmptyArrays: true // Inclui registros de 'appointment' sem 'client'
+    }
+  },
+  {
+    $project: {
+      appointment_id: "$_id",
+      date_to_start_service: "$date_appointment",
+      date_to_finish_service: "$date_conclusion",
+      date_that_service_start: "$service_data.date_begin",
+      date_that_service_finish: "$service_data.date_conclusion",
+      client_name: "$client_data.name"
+    }
+  }
+ ]
+
+
+[
+{
+    $lookup: {
+      from: "service", // Coleção de serviços
+      localField: "_id", // Campo em 'appointment'
+      foreignField: "appointment_id", // Campo correspondente em 'service'
+      as: "service_data" // Nome do campo de saída
+    }
+  },
+  {
+    $lookup: {
+      from: "client", // Coleção de clientes
+      localField: "client_id", // Campo em 'appointment'
+      foreignField: "_id", // Campo correspondente em 'client'
+      as: "client_data" // Nome do campo de saída
+    }
+  },
+  {
+    $unwind: {
+      path: "$service_data",
+      preserveNullAndEmptyArrays: false // Inclui registros de 'appointment' sem 'service'
+    }
+  },
+  {
+    $unwind: {
+      path: "$client_data",
+      preserveNullAndEmptyArrays: false // Inclui registros de 'appointment' sem 'client'
+    }
+  },
+  {
+    $project: {
+      appointment_id: "$_id",
+      date_to_start_service: "$date_appointment",
+      date_to_finish_service: "$date_conclusion",
+      date_that_service_start: "$service_data.date_begin",
+      date_that_service_finish: "$service_data.date_conclusion",
+      client_name: "$client_data.name"
+    }
+  }
+ ]
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Agregar as tabelas marcação (appointement) e serviço (servisse) filtrando os resultados pelo status cancelado;
+
+SELECT 
+    a.id AS appointment_id,
+    a.date_appointment,
+    a.date_conclusion AS appointment_date_conclusion,
+    a.status_id AS status_id,
+    s.id AS service_id,
+    s.date_begin AS service_date_begin,
+    s.date_conclusion AS service_date_conclusion,
+    st.id AS service_status_id,
+    st.description as status_description
+FROM 
+    appointment a
+JOIN 
+    service s ON a.id = s.appointment_id
+JOIN
+    status st ON st.id = a.status_id
+WHERE 
+    st.description = 'Cancelado'; -- Filtra pelo status 'cancelado'
+
+tempo -> 0.238 s
+
+Cenário de Registros Desalinhados para todos os Appointment e todos os Service (mesmo sem correspondência)
+
+SELECT 
+    a.id AS appointment_id,
+    a.date_appointment,
+    a.date_conclusion AS appointment_date_conclusion,
+    a.status_id AS status_id,
+    s.id AS service_id,
+    s.date_begin AS service_date_begin,
+    s.date_conclusion AS service_date_conclusion,
+    st.id AS service_status_id,
+    st.description as status_description
+FROM 
+    appointment a
+left JOIN 
+    service s ON a.id = s.appointment_id
+left JOIN
+    status st ON st.id = a.status_id
+WHERE 
+    st.description = 'Cancelado'; -- Filtra pelo status 'cancelado'
+
+tempo -> 0.229 s
+
+------------------------------------------------------------------------------------------------------------------------------------------
+Neo4j:
+
+MATCH (a:Appointment)
+MATCH (a)-[:HAS_SERVICE]->(s:Service)
+MATCH (a)-[:HAS_STATUS]->(st:Status)
+WHERE st.description = 'Cancelado'
+RETURN 
+    a.id AS appointment_id,
+    a.date_appointment,
+    a.date_conclusion AS appointment_date_conclusion,
+    a.status_id AS status_id,
+    s.id AS service_id,
+    s.date_begin AS service_date_begin,
+    s.date_conclusion AS service_date_conclusion,
+    st.id AS service_status_id,
+    st.description AS status_description;
+
+
+tempo-> 1001 ms
+
+Cenário de Registros Desalinhados para todos os Appointment e todos os Service (mesmo sem correspondência)
+
+MATCH (a:Appointment)
+OPTIONAL MATCH (a)-[:HAS_SERVICE]->(s:Service)
+OPTIONAL MATCH (a)-[:HAS_STATUS]->(st:Status)
+WHERE st.description = 'Cancelado'
+RETURN 
+    a.id AS appointment_id,
+    a.date_appointment,
+    a.date_conclusion AS appointment_date_conclusion,
+    a.status_id AS status_id,
+    s.id AS service_id,
+    s.date_begin AS service_date_begin,
+    s.date_conclusion AS service_date_conclusion,
+    st.id AS service_status_id,
+    st.description AS status_description;
+
+tempo -> 5502 ms
+
+------------------------------------------------------------------------------------------------------------------------------------------MongoDB
+
+[
+  {
+    $lookup: {
+      from: "service", // Nome da coleção "service"
+      localField: "_id", // Campo em "appointment"
+      foreignField: "appointment_id", // Campo em "service"
+      as: "services" // Nome do campo resultante
+    }
+  },
+  {
+    $lookup: {
+      from: "status", // Nome da coleção "status"
+      localField: "status_id", // Campo em "appointment"
+      foreignField: "_id", // Campo em "status"
+      as: "status" // Nome do campo resultante
+    }
+  },
+  {
+    $unwind: {
+      path: "$services",
+      preserveNullAndEmptyArrays: true // Inclui documentos sem serviços
+    }
+  },
+  {
+    $unwind: {
+      path: "$status",
+      preserveNullAndEmptyArrays: true // Inclui documentos sem status
+    }
+  },
+  {
+    $match: {
+      "status.description": "Cancelado" // Filtra pelo status "Cancelado"
+    }
+  },
+  {
+    $project: {
+      appointment_id: "$_id", // ID da marcação
+      date_appointment: 1, // Data da marcação
+      appointment_date_conclusion: "$date_conclusion", // Data de conclusão da marcação
+      status_id: 1, // ID do status
+      service_id: "$services._id", // ID do serviço
+      service_date_begin: "$services.date_begin", // Data de início do serviço
+      service_date_conclusion: "$services.date_conclusion", // Data de conclusão do serviço
+      service_status_id: "$status._id", // ID do status
+      status_description: "$status.description" // Descrição do status
+    }
+  }
+]
+
+Cenário de Registros Desalinhados para todos os Appointment e todos os Service (mesmo sem correspondência)
+
+[
+  {
+    $lookup: {
+      from: "service", // Nome da coleção "service"
+      localField: "_id", // Campo em "appointment"
+      foreignField: "appointment_id", // Campo em "service"
+      as: "services" // Nome do campo resultante
+    }
+  },
+  {
+    $lookup: {
+      from: "status", // Nome da coleção "status"
+      localField: "status_id", // Campo em "appointment"
+      foreignField: "_id", // Campo em "status"
+      as: "status" // Nome do campo resultante
+    }
+  },
+  {
+    $unwind: {
+      path: "$services",
+      preserveNullAndEmptyArrays: false // Inclui documentos sem serviços
+    }
+  },
+  {
+    $unwind: {
+      path: "$status",
+      preserveNullAndEmptyArrays: false // Inclui documentos sem status
+    }
+  },
+  {
+    $match: {
+      "status.description": "Cancelado" // Filtra pelo status "Cancelado"
+    }
+  },
+  {
+    $project: {
+      appointment_id: "$_id", // ID da marcação
+      date_appointment: 1, // Data da marcação
+      appointment_date_conclusion: "$date_conclusion", // Data de conclusão da marcação
+      status_id: 1, // ID do status
+      service_id: "$services._id", // ID do serviço
+      service_date_begin: "$services.date_begin", // Data de início do serviço
+      service_date_conclusion: "$services.date_conclusion", // Data de conclusão do serviço
+      service_status_id: "$status._id", // ID do status
+      status_description: "$status.description" // Descrição do status
+    }
+  }
+]
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Inserção de cinco mil dados na tabela de serviço (service);
+
+PostgresSql:
+
+DO $$
+DECLARE
+  start_id INT := 155001; -- Ajuste este valor baseado no MAX(id) + 1
+BEGIN
+  FOR i IN start_id..(start_id + 4999) LOOP
+    INSERT INTO service (id, appointment_id, worker_id, part_id, date_begin, date_conclusion, motive_reschedule, client_signature, created_date, modified_date)
+    VALUES (
+      i, -- ID único
+      CEIL(RANDOM() * 1000)::INT, -- appointment_id aleatório de 1 a 1000
+      CEIL(RANDOM() * 1000)::INT, -- worker_id aleatório de 1 a 1000
+      CEIL(RANDOM() * 100)::INT, -- part_id aleatório de 1 a 100
+      NOW() - (RANDOM() * 365 * INTERVAL '1 day'), -- Data de início aleatória
+      NOW() - (RANDOM() * 30 * INTERVAL '1 day'), -- Data de conclusão aleatória
+      -- Gera uma string aleatória de 4 letras (A-Z)
+      SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1) ||
+      SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1) ||
+      SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1) ||
+      SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1), -- String de 4 letras aleatórias
+      -- Gera uma "assinatura" com 4 letras minúsculas aleatórias
+      LOWER(SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1)) ||
+      LOWER(SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1)) ||
+      LOWER(SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1)) ||
+      LOWER(SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1)), -- 4 letras minúsculas aleatórias
+      NOW() - (RANDOM() * 365 * INTERVAL '1 day'), -- Data de criação aleatória
+      NOW() - (RANDOM() * 30 * INTERVAL '1 day') -- Data de modificação aleatória
+    );
+  END LOOP;
+END $$;
+
+tempo -> 0261 s
+------------------------------------------------------------------------------------------------------------------------------------------
+Neo4J: 
+
+UNWIND range(155001, 159999) AS i
+WITH i
+CREATE (s:Service {id: i, 
+                  appointment_id: toInteger(round(rand() * 1000)), 
+                  worker_id: toInteger(round(rand() * 1000)), 
+                  part_id: toInteger(round(rand() * 100)),
+                  date_begin: 
+                    date({year: 2021, 
+                          month: toInteger(round(rand() * 10)) + 1,  // Gera mês entre 1 e 10
+                          day: toInteger(round(rand() * 27)) + 1}),  // Gera dia entre 1 e 27
+                  date_conclusion: 
+                    date({year: 2021, 
+                          month: toInteger(round(rand() * 10)) + 1,  // Gera mês entre 1 e 10
+                          day: toInteger(round(rand() * 27)) + 1}),  // Gera dia entre 1 e 27
+                  motive_reschedule: 
+                    substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', toInteger(round(rand() * 26)), 1) + 
+                    substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', toInteger(round(rand() * 26)), 1) + 
+                    substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', toInteger(round(rand() * 26)), 1) + 
+                    substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', toInteger(round(rand() * 26)), 1),
+                  client_signature: 
+                    substring('abcdefghijklmnopqrstuvwxyz', toInteger(round(rand() * 26)), 1) + 
+                    substring('abcdefghijklmnopqrstuvwxyz', toInteger(round(rand() * 26)), 1) + 
+                    substring('abcdefghijklmnopqrstuvwxyz', toInteger(round(rand() * 26)), 1) + 
+                    substring('abcdefghijklmnopqrstuvwxyz', toInteger(round(rand() * 26)), 1),
+                  created_date: 
+                    date({year: 2021, 
+                          month: toInteger(round(rand() * 10)) + 1,  // Gera mês entre 1 e 10
+                          day: toInteger(round(rand() * 27)) + 1}),  // Gera dia entre 1 e 27
+                  modified_date: 
+                    date({year: 2021, 
+                          month: toInteger(round(rand() * 10)) + 1,  // Gera mês entre 1 e 10
+                          day: toInteger(round(rand() * 27)) + 1})  // Gera dia entre 1 e 27
+                 });
+
+tempo -> 364 ms
+------------------------------------------------------------------------------------------------------------------------------------------
+MongoDB:
+const serviceData = [];
+
+// Gerar dados para 5000 documentos
+for (let i = 155001; i <= 159999; i++) {
+  const randomMonth = Math.floor(Math.random() * 10) + 1; // Mês entre 1 e 10
+  const randomDay = Math.floor(Math.random() * 27) + 1; // Dia entre 1 e 27
+
+  const generateRandomString = (length) => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const generateRandomSignature = (length) => {
+    const chars = 'abcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const service = {
+    id: i,
+    appointment_id: Math.floor(Math.random() * 1000), // appointment_id aleatório de 0 a 1000
+    worker_id: Math.floor(Math.random() * 1000), // worker_id aleatório de 0 a 1000
+    part_id: Math.floor(Math.random() * 100), // part_id aleatório de 0 a 100
+    date_begin: new Date(2021, randomMonth - 1, randomDay), // Data de início com mês e dia aleatórios
+    date_conclusion: new Date(2021, randomMonth - 1, randomDay), // Data de conclusão com mês e dia aleatórios
+    motive_reschedule: generateRandomString(4), // String aleatória para motivo de reagendamento
+    client_signature: generateRandomSignature(4), // Assinatura aleatória do cliente
+    created_date: new Date(2021, randomMonth - 1, randomDay), // Data de criação com mês e dia aleatórios
+    modified_date: new Date(2021, randomMonth - 1, randomDay), // Data de modificação com mês e dia aleatórios
+  };
+
+  serviceData.push(service);
+}
+
+// Inserir os dados no MongoDB
+db.services.insertMany(serviceData);
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Edição de cinco mil dados na tabela de serviço (service);
+
+PostgreSQL:
+DO $$
+DECLARE
+  start_id INT := 155001; -- Começo dos IDs
+  end_id INT := 159999;   -- Fim dos IDs
+BEGIN
+  FOR i IN start_id..end_id LOOP
+    UPDATE service
+    SET
+      appointment_id = CEIL(RANDOM() * 1000)::INT,
+      worker_id = CEIL(RANDOM() * 1000)::INT,
+      part_id = CEIL(RANDOM() * 100)::INT,
+      date_begin = NOW() - (RANDOM() * 365 * INTERVAL '1 day'),
+      date_conclusion = NOW() - (RANDOM() * 30 * INTERVAL '1 day'),
+      motive_reschedule = 
+        SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1) ||
+        SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1) ||
+        SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1) ||
+        SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1),
+      client_signature = 
+        LOWER(SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1)) ||
+        LOWER(SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1)) ||
+        LOWER(SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1)) ||
+        LOWER(SUBSTRING('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (RANDOM() * 26 + 1)::INT, 1)),
+      created_date = NOW() - (RANDOM() * 365 * INTERVAL '1 day'),
+      modified_date = NOW() - (RANDOM() * 30 * INTERVAL '1 day')
+    WHERE id = i;
+  END LOOP;
+END $$;
+
+tempo -> 0324 s
+------------------------------------------------------------------------------------------------------------------------------------------
+Neo4J:
+
+MATCH (s:Service)
+WHERE s.id >= 155001 AND s.id <= 159999
+WITH s
+LIMIT 5000
+SET s.appointment_id = toInteger(round(rand() * 1000)),
+    s.worker_id = toInteger(round(rand() * 1000)),
+    s.part_id = toInteger(round(rand() * 100)),
+    s.date_begin = date({year: 2021, 
+                         month: toInteger(round(rand() * 10)) + 1,  // Mês entre 1 e 10
+                         day: toInteger(round(rand() * 27)) + 1}), // Dia entre 1 e 27
+    s.date_conclusion = date({year: 2021, 
+                              month: toInteger(round(rand() * 10)) + 1,  // Mês entre 1 e 10
+                              day: toInteger(round(rand() * 27)) + 1}), // Dia entre 1 e 27
+    s.motive_reschedule = 
+      substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', toInteger(round(rand() * 26)), 1) +
+      substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', toInteger(round(rand() * 26)), 1) +
+      substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', toInteger(round(rand() * 26)), 1) +
+      substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', toInteger(round(rand() * 26)), 1),
+    s.client_signature = 
+      substring('abcdefghijklmnopqrstuvwxyz', toInteger(round(rand() * 26)), 1) +
+      substring('abcdefghijklmnopqrstuvwxyz', toInteger(round(rand() * 26)), 1) +
+      substring('abcdefghijklmnopqrstuvwxyz', toInteger(round(rand() * 26)), 1) +
+      substring('abcdefghijklmnopqrstuvwxyz', toInteger(round(rand() * 26)), 1),
+    s.created_date = date({year: 2021, 
+                          month: toInteger(round(rand() * 10)) + 1,  // Mês entre 1 e 10
+                          day: toInteger(round(rand() * 27)) + 1}),  // Dia entre 1 e 27
+    s.modified_date = date({year: 2021, 
+                           month: toInteger(round(rand() * 10)) + 1,  // Mês entre 1 e 10
+                           day: toInteger(round(rand() * 27)) + 1})  // Dia entre 1 e 27
+
+tempo -> 608 ms
+------------------------------------------------------------------------------------------------------------------------------------------mongoDB:
+// Encontrar os 5000 primeiros documentos com id entre 155001 e 159999
+const cursor = db.service.find({ id: { $gte: 155001, $lte: 159999 } }).limit(5000);
+
+// Função para gerar uma string aleatória de 4 letras
+function generateRandomString() {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  return Array.from({ length: 4 }, () => letters.charAt(Math.floor(Math.random() * letters.length))).join('');
+}
+
+// Realizar atualização em cada documento encontrado
+cursor.forEach(service => {
+  db.service.updateOne(
+    { _id: service._id },
+    {
+      $set: {
+        appointment_id: Math.ceil(Math.random() * 1000),
+        worker_id: Math.ceil(Math.random() * 1000),
+        part_id: Math.ceil(Math.random() * 100),
+        date_begin: new Date(2021, Math.floor(Math.random() * 10), Math.floor(Math.random() * 27) + 1),
+        date_conclusion: new Date(2021, Math.floor(Math.random() * 10), Math.floor(Math.random() * 27) + 1),
+        motive_reschedule: generateRandomString(),
+        client_signature: generateRandomString(),
+        created_date: new Date(2021, Math.floor(Math.random() * 10), Math.floor(Math.random() * 27) + 1),
+        modified_date: new Date(2021, Math.floor(Math.random() * 10), Math.floor(Math.random() * 27) + 1)
+      }
+    }
+  );
+});
+
+print('Atualização concluída!');
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Remoção de cinco mil dados na tabela de serviço (service)
+
+PostgreSQL:
+
+WITH cte AS (
+  SELECT id
+  FROM service
+  WHERE id BETWEEN 155001 AND 159999
+  LIMIT 5000
+)
+DELETE FROM service
+WHERE id IN (SELECT id FROM cte);
+
+tempo -> 2s
+------------------------------------------------------------------------------------------------------------------------------------------
+
+Neo4j:
+
+MATCH (s:Service)
+WHERE s.id >= 155001 AND s.id <= 159999
+WITH s
+LIMIT 5000
+DETACH DELETE s;
+
+tempo -> 187 ms
+
+------------------------------------------------------------------------------------------------------------------------------------------
+MongoDB:
+
+// 1. Selecionar 5000 documentos aleatórios
+var randomDocs = db.collection.aggregate([
+  { $sample: { size: 5000 } }  // Seleciona aleatoriamente 5000 documentos
+]).toArray();
+
+// 2. Extrair os _id dos documentos selecionados
+var idsToDelete = randomDocs.map(doc => doc._id);
+
+// 3. Deletar os documentos selecionados
+var result = db.collection.deleteMany({
+  _id: { $in: idsToDelete }  // Deleta os documentos com os _id extraídos
+});
+
+// 4. Imprimir o número de documentos excluídos
+print(`Total de documentos excluídos: ${result.deletedCount}`);
+
+
+
+
+
+
+
+
