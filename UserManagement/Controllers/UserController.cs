@@ -1,86 +1,83 @@
-using UserManagement.Models;
-using UserManagement.Repositories;
-using UserManagement.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using UserManagement.Models;
+using UserManagement.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace UserManagement.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    public class UserController : ControllerBase
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
 
-        public UsersController(IUserRepository userRepository)
+        public UserController(IUserService userService)
         {
-            _userRepository = userRepository;
-        }
-
-        [HttpGet]
-        public async Task<ActionResult<List<Usuario>>> GetUsuarios()
-        {
-            var usuarios = await _userRepository.GetUsuariosAsync();
-            return Ok(usuarios);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Usuario>> GetUsuario(Guid id)
-        {
-            var usuario = await _userRepository.GetUsuarioByIdAsync(id);
-            if (usuario == null)
-            {
-                return NotFound();
-            }
-            return Ok(usuario);
+            _userService = userService;
         }
 
         [HttpPost]
-        public async Task<ActionResult<Usuario>> CreateUsuario(Usuario usuario)
+        public async Task<ActionResult<User>> CreateUser(User user)
         {
-            // Validações dos dados do usuário
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // Hash da senha
-            usuario.Password = _authService.HashSenha(usuario.Password);
-
-            await _userRepository.CreateUsuarioAsync(usuario);
-            return CreatedAtAction(nameof(GetUsuario), new { id = usuario.Id }, usuario);
+            var createdUser = await _userService.CreateUser(user);
+            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
         }
+
+        [HttpGet("{id}")]
+         [Authorize]
+        public async Task<ActionResult<User>> GetUserById(string id)
+        {
+            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+             if(string.IsNullOrEmpty(token)) return Unauthorized();
+
+           var isTokenValid =  await _userService.ValidateToken(token);
+
+           if(!isTokenValid) return Unauthorized();
+
+             var user = await _userService.GetUserById(id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return Ok(user);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
+        {
+            var users = await _userService.GetAllUsers();
+            return Ok(users);
+        }
+
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUsuario(Guid id, Usuario usuario)
+        public async Task<ActionResult<User>> UpdateUser(string id, User updatedUser)
         {
-            if (id != usuario.Id)
-            {
-                return BadRequest();
-            }
+            var user = await _userService.UpdateUser(id, updatedUser);
 
-            // Validações dos dados do usuário
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            await _userRepository.UpdateUsuarioAsync(usuario);
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUsuario(Guid id)
-        {
-            var usuario = await _userRepository.GetUsuarioByIdAsync(id);
-            if (usuario == null)
+            if (user == null)
             {
                 return NotFound();
             }
 
-            await _userRepository.DeleteUsuarioAsync(id);
-            return NoContent();
+            return Ok(user);
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            var deleted = await _userService.DeleteUser(id);
+
+            if (!deleted)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
     }
 }
