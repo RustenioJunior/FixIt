@@ -62,16 +62,15 @@ namespace UserManagement.Services
         }
         public async Task<bool> ValidateToken(string token)
         {
-            var factory = new ConnectionFactory
+             var factory = new ConnectionFactory
             {
                 HostName = _configuration["RabbitMQ:Host"] ?? "",
                 UserName = _configuration["RabbitMQ:Username"] ?? "",
                 Password = _configuration["RabbitMQ:Password"] ?? ""
             };
-
             using (var connection = await factory.CreateConnectionAsync())
              using (var channel = connection.CreateModel())
-             {
+            {
                 var responseQueue = $"{_queueName}-response";
                 await channel.QueueDeclareAsync(queue: responseQueue, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
@@ -82,33 +81,36 @@ namespace UserManagement.Services
 
                 channel.BasicPublish(exchange: "", routingKey: _queueName, basicProperties: null, body: body);
 
-                var consumer = new EventingBasicConsumer(channel);
+                var consumer = new AsyncEventingBasicConsumer(channel);
                 bool isValid = false;
-                var tcs = new TaskCompletionSource<bool>();
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-                consumer.Received += (model, ea) =>
+                consumer.ReceivedAsync += async (model, ea) =>
                 {
                     try
                     {
                         var responseBody = ea.Body.ToArray();
                         var message = Encoding.UTF8.GetString(responseBody);
                         var tokenValidationResponse = JsonSerializer.Deserialize<TokenValidationResponse>(message);
-                        if (tokenValidationResponse != null && tokenValidationResponse.CorrelationId == correlationId)
-                        {
+                         if (tokenValidationResponse != null && tokenValidationResponse.CorrelationId == correlationId)
+                         {
                              isValid = tokenValidationResponse.IsValid;
-                            tcs.SetResult(isValid);
-                        }
+                              tcs.SetResult(isValid);
+                         }
 
-                    }
+                     }
                     catch (Exception ex)
-                    {
-                        tcs.SetException(ex);
+                     {
+                       tcs.SetException(ex);
                     }
+
+                     await Task.Yield();
 
                 };
 
-                channel.BasicConsume(queue: responseQueue, autoAck: true, consumer: consumer);
-                 await Task.WhenAny(tcs.Task, Task.Delay(5000));
+                await channel.BasicConsumeAsync(queue: responseQueue, autoAck: true, consumer: consumer);
+                 await Task.WhenAny(tcs.Task, Task.DelayAsync(5000));
+
 
                 if (tcs.Task.IsCompleted)
                 {
@@ -118,7 +120,7 @@ namespace UserManagement.Services
                 {
                     return false;
                 }
-             }
+            }
         }
     }
 }
