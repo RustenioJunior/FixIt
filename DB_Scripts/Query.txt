@@ -1,4 +1,4 @@
-Resultado do teste de inserção:
+Resultado do teste de inserção de grande dados com especial foco em appointment e service em que foi inserido 200000 e 150000 dados respetivamente:
 PostgresSQL-> 19 mn -> 1142.77 segundos
 MongoDB -> 12 mn -> 752.12 segundos
 Neo4J -> 1 hora, 4 minutos e 50.15 segundos -> 3850.15 segundos
@@ -6,8 +6,26 @@ Neo4J -> 1 hora, 4 minutos e 50.15 segundos -> 3850.15 segundos
 
 1--- Execução de uma pesquisa nas tabelas do cliente (client), marcação (appointment) e serviço (servisse), filtrando o resultado apenas para um cliente e agrupando os registos. Obtendo assim, o número total de serviços para um cliente;
 
-Duração PostgresSQL -> 0.780s na primeira consulta e cai nas próximas consultas seguintes por exemplo a segunda cai para 0.354s
+Query PostgresSQL
 
+SELECT 
+    c.id AS client_id,
+    c.name AS client_name,
+    COUNT(s.id) AS total_services
+FROM 
+    client c
+JOIN 
+    appointment a ON c.id = a.client_id
+JOIN 
+    service s ON a.id = s.appointment_id
+GROUP BY 
+    c.id, c.name
+ORDER BY 
+    total_services DESC;
+
+
+Duração PostgresSQL -> 0.780s na primeira consulta e cai nas próximas consultas seguintes por exemplo a segunda cai para 0.354s
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Query neo4J 
 
@@ -41,6 +59,113 @@ ORDER BY total_services DESC;
 
 
 Duração Neo4j -> 665 ms
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Query MongoDB
+
+[
+  {
+    $lookup:
+      /**
+       * from: The target collection.
+       * localField: The local join field.
+       * foreignField: The target join field.
+       * as: The name for the results.
+       * pipeline: Optional pipeline to run on the foreign collection.
+       * let: Optional variables to use in the pipeline field stages.
+       */
+      {
+        from: "appointment",
+        localField: "_id",
+        foreignField: "client_id",
+        as: "appointments"
+      }
+  },
+  {
+    $unwind:
+      /**
+       * path: Path to the array field.
+       * includeArrayIndex: Optional name for index.
+       * preserveNullAndEmptyArrays: Optional
+       *   toggle to unwind null and empty values.
+       */
+      {
+        path: "$appointments",
+        includeArrayIndex: "appointmentIndex",
+        preserveNullAndEmptyArrays: true
+      }
+  },
+  {
+    $lookup:
+      /**
+       * from: The target collection.
+       * localField: The local join field.
+       * foreignField: The target join field.
+       * as: The name for the results.
+       * pipeline: Optional pipeline to run on the foreign collection.
+       * let: Optional variables to use in the pipeline field stages.
+       */
+      {
+        from: "service",
+        localField: "appointments._id",
+        foreignField: "appointment_id",
+        as: "services"
+      }
+  },
+  {
+    $unwind:
+      /**
+       * path: Path to the array field.
+       * includeArrayIndex: Optional name for index.
+       * preserveNullAndEmptyArrays: Optional
+       *   toggle to unwind null and empty values.
+       */
+      {
+        path: "$services",
+        includeArrayIndex: "serviceIndex",
+        preserveNullAndEmptyArrays: true
+      }
+  },
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: {
+          client_id: "$_id",
+          client_name: "$name"
+        },
+        total_services: {
+          $sum: 1
+        }
+      }
+  },
+  {
+    $sort:
+      /**
+       * Provide any number of field/order pairs.
+       */
+      {
+        total_services: -1
+      }
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        client_id: "$_id.client_id",
+        client_name: "$_id.client_name",
+        total_services: 1,
+        _id: 0
+      }
+  }
+]
+
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 2--- Agregar as tabelas marcação (appointement) e serviço (service) join cliente por nome;
@@ -464,43 +589,46 @@ CREATE (s:Service {id: i,
 
 tempo -> 364 ms
 ------------------------------------------------------------------------------------------------------------------------------------------
-MongoDB:
-const serviceData = [];
+// Criar array para armazenar os dados
+var serviceData = [];
+
+// Marcar o início do tempo
+var startTime = new Date();
 
 // Gerar dados para 5000 documentos
-for (let i = 155001; i <= 159999; i++) {
-  const randomMonth = Math.floor(Math.random() * 10) + 1; // Mês entre 1 e 10
-  const randomDay = Math.floor(Math.random() * 27) + 1; // Dia entre 1 e 27
+for (var i = 155001; i <= 159999; i++) {
+  var randomMonth = Math.floor(Math.random() * 10) + 1; // Mês entre 1 e 10
+  var randomDay = Math.floor(Math.random() * 27) + 1; // Dia entre 1 e 27
 
-  const generateRandomString = (length) => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let result = '';
-    for (let i = 0; i < length; i++) {
+  var generateRandomString = function(length) {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var result = '';
+    for (var j = 0; j < length; j++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
   };
 
-  const generateRandomSignature = (length) => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz';
-    let result = '';
-    for (let i = 0; i < length; i++) {
+  var generateRandomSignature = function(length) {
+    var chars = 'abcdefghijklmnopqrstuvwxyz';
+    var result = '';
+    for (var k = 0; k < length; k++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
   };
 
-  const service = {
+  var service = {
     id: i,
-    appointment_id: Math.floor(Math.random() * 1000), // appointment_id aleatório de 0 a 1000
-    worker_id: Math.floor(Math.random() * 1000), // worker_id aleatório de 0 a 1000
-    part_id: Math.floor(Math.random() * 100), // part_id aleatório de 0 a 100
-    date_begin: new Date(2021, randomMonth - 1, randomDay), // Data de início com mês e dia aleatórios
-    date_conclusion: new Date(2021, randomMonth - 1, randomDay), // Data de conclusão com mês e dia aleatórios
-    motive_reschedule: generateRandomString(4), // String aleatória para motivo de reagendamento
-    client_signature: generateRandomSignature(4), // Assinatura aleatória do cliente
-    created_date: new Date(2021, randomMonth - 1, randomDay), // Data de criação com mês e dia aleatórios
-    modified_date: new Date(2021, randomMonth - 1, randomDay), // Data de modificação com mês e dia aleatórios
+    appointment_id: Math.floor(Math.random() * 1000),
+    worker_id: Math.floor(Math.random() * 1000),
+    part_id: Math.floor(Math.random() * 100),
+    date_begin: new Date(2021, randomMonth - 1, randomDay),
+    date_conclusion: new Date(2021, randomMonth - 1, randomDay),
+    motive_reschedule: generateRandomString(4),
+    client_signature: generateRandomSignature(4),
+    created_date: new Date(2021, randomMonth - 1, randomDay),
+    modified_date: new Date(2021, randomMonth - 1, randomDay),
   };
 
   serviceData.push(service);
@@ -509,6 +637,12 @@ for (let i = 155001; i <= 159999; i++) {
 // Inserir os dados no MongoDB
 db.services.insertMany(serviceData);
 
+// Marcar o fim do tempo e calcular a duração
+var endTime = new Date();
+var duration = endTime - startTime;
+print("Tempo de execução: " + duration + "ms");
+
+tempo -> 257 ms
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Edição de cinco mil dados na tabela de serviço (service);
@@ -578,7 +712,12 @@ SET s.appointment_id = toInteger(round(rand() * 1000)),
                            day: toInteger(round(rand() * 27)) + 1})  // Dia entre 1 e 27
 
 tempo -> 608 ms
-------------------------------------------------------------------------------------------------------------------------------------------mongoDB:
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+mongoDB:
+// Marcar o início do tempo
+var startTime = Date.now();
+
 // Encontrar os 5000 primeiros documentos com id entre 155001 e 159999
 const cursor = db.service.find({ id: { $gte: 155001, $lte: 159999 } }).limit(5000);
 
@@ -608,7 +747,14 @@ cursor.forEach(service => {
   );
 });
 
+// Marcar o fim do tempo
+var endTime = Date.now();
+var duration = endTime - startTime; // Calcular a diferença em milissegundos
+
 print('Atualização concluída!');
+print('Tempo de execução: ' + duration + ' ms');
+
+tempo -> 134 ms
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Remoção de cinco mil dados na tabela de serviço (service)
@@ -640,6 +786,9 @@ tempo -> 187 ms
 ------------------------------------------------------------------------------------------------------------------------------------------
 MongoDB:
 
+// Marcar o início do tempo
+var startTime = Date.now();
+
 // 1. Selecionar 5000 documentos aleatórios
 var randomDocs = db.collection.aggregate([
   { $sample: { size: 5000 } }  // Seleciona aleatoriamente 5000 documentos
@@ -653,8 +802,16 @@ var result = db.collection.deleteMany({
   _id: { $in: idsToDelete }  // Deleta os documentos com os _id extraídos
 });
 
-// 4. Imprimir o número de documentos excluídos
+// Marcar o fim do tempo
+var endTime = Date.now();
+var duration = endTime - startTime; // Calcular a diferença em milissegundos
+
+// 4. Imprimir o número de documentos excluídos e o tempo de execução
 print(`Total de documentos excluídos: ${result.deletedCount}`);
+print('Tempo de execução: ' + duration + ' ms');
+
+
+tempo -> 26 ms
 
 
 
