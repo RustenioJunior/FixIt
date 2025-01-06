@@ -1,56 +1,17 @@
-﻿using Authentication.Models;
-using Authentication.Repositories;
-using Authentication.Services;
-using Microsoft.AspNetCore.Builder;
+﻿using Authentication.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.Configure<MongoDbSettings>(
-    builder.Configuration.GetSection("MongoDbSettings"));
-
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<AuthService>();
-
-// Configure CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
-});
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+var builder = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((hostContext, services) =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-        c.RoutePrefix = string.Empty; // Serve the Swagger UI at the app's root
+         services.AddSingleton<IAuthenticationService, AuthenticationService>();
     });
-}
 
-// Comment out or remove this line to disable HTTPS redirection
-// app.UseHttpsRedirection();
+var host = builder.Build();
 
-// Use CORS
-app.UseCors("AllowAll");
+var authenticationService = host.Services.GetRequiredService<IAuthenticationService>();
+authenticationService.StartListening();
 
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run("http://0.0.0.0:80");
+await host.RunAsync();

@@ -1,23 +1,60 @@
-
+version: '3.8'
 services:
-  authentication-service:
-    build:
-      context: .
-      dockerfile: Authentication/Dockerfile
-    ports:
-      - "5235:80"
-    container_name: authentication-service-container
-  usermanagement-service:
-    build:
-      context: .
-      dockerfile: UserManagement/Dockerfile
-    ports:
-      - "5279:80"
-    container_name: usermanagement-service-container
-  mongodb:
-    image: mongo
-    restart: always
-    volumes:
-      - ./data:/data/db
-    ports:
-      - 27017:27017
+    rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        environment:
+            RABBITMQ_DEFAULT_USER: guest
+            RABBITMQ_DEFAULT_PASS: guest
+    usermanagement:
+        build:
+          context: ./UserManagement
+          dockerfile: Dockerfile
+        ports:
+            - "5000:80"
+            - "5001:443"
+        depends_on:
+            - rabbitmq
+            - mongodb
+        environment:
+          - ASPNETCORE_ENVIRONMENT=Development
+          - ConnectionStrings__MongoDB=mongodb://mongodb:27017
+          - MongoDB__DatabaseName=UsersDb
+          - RabbitMQ__Host=rabbitmq
+          - RabbitMQ__Username=guest
+          - RabbitMQ__Password=guest
+          - Jwt__Secret="seu segredo ultra secreto aqui, mude isso no ambiente de produção"
+          - Jwt__Issuer="seu domínio"
+          - Jwt__Audience="seu dominio"
+        networks:
+           - app_network
+    authentication:
+        build:
+            context: ./Authentication
+            dockerfile: Dockerfile
+        ports:
+          - "6000:80"
+          - "6001:443"
+        depends_on:
+            - rabbitmq
+        environment:
+          - ASPNETCORE_ENVIRONMENT=Development
+          - RabbitMQ__Host=rabbitmq
+          - RabbitMQ__Username=guest
+          - RabbitMQ__Password=guest
+          - Jwt__Secret="seu segredo ultra secreto aqui, mude isso no ambiente de produção"
+          - Jwt__Issuer="seu domínio"
+          - Jwt__Audience="seu dominio"
+        networks:
+          - app_network
+    mongodb:
+        image: mongo
+        ports:
+          - "27017:27017"
+        networks:
+          - app_network
+networks:
+    app_network:
+        driver: bridge

@@ -1,9 +1,9 @@
 namespace UserManagement.Helpers
 {
-    public class AppSettings
+     public class AppSettings
     {
-        public string Secret { get; set; }
-        public string ConnectionString { get; set; }
-        public string Database { get; set; }
+        public string Secret { get; set; } = string.Empty;
+        public string ConnectionString { get; set; } = string.Empty;
+        public string Database { get; set; } = string.Empty;
     }
 }

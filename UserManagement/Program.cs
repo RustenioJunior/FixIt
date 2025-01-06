@@ -1,74 +1,56 @@
-using UserManagement.Models;
-using UserManagement.Repositories;
-using UserManagement.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
+using UserManagement.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Configure MongoDB settings and GuidRepresentation
-builder.Services.Configure<MongoDbSettings>(
-    builder.Configuration.GetSection("MongoDbSettings"));
-
-// Configure GuidRepresentation globally to Standard
-BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard)); // Use Standard for consistent Guid representation
-
-// Use Standard Guid Representation
-var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
-if (mongoDbSettings == null)
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddAuthentication(options =>
 {
-    throw new InvalidOperationException("MongoDbSettings section is missing in the configuration.");
-}
-var clientSettings = MongoClientSettings.FromConnectionString(mongoDbSettings.ConnectionString);
-
-builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(clientSettings));
-
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<AuthService>();
-
-// Configure CORS
-builder.Services.AddCors(options =>
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
 {
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"] ?? "")),
+        ClockSkew = TimeSpan.Zero
+    };
 });
+
+
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-        c.RoutePrefix = string.Empty; // Serve the Swagger UI at the app's root
-    });
+    app.UseDeveloperExceptionPage();
 }
 
-// Comment out or remove this line to disable HTTPS redirection
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
-// Use CORS
-app.UseCors("AllowAll");
+app.UseAuthentication();
+
+app.UseRouting();
 
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run("http://0.0.0.0:80");
+app.Run();
